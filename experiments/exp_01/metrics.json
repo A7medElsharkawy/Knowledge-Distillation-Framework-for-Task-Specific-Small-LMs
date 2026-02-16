@@ -1,0 +1,26 @@
+{
+  "experiment_id": "exp_01",
+  "status": "pending",
+  "start_time": null,
+  "end_time": null,
+  "training_metrics": {
+    "train_loss": [],
+    "eval_loss": [],
+    "learning_rate": [],
+    "epoch": []
+  },
+  "final_metrics": {
+    "best_train_loss": null,
+    "best_eval_loss": null,
+    "final_train_loss": null,
+    "final_eval_loss": null,
+    "total_training_time_seconds": null
+  },
+  "model_info": {
+    "base_model": "Qwen/Qwen2.5-7B-Instruct",
+    "lora_rank": 8,
+    "lora_alpha": 16,
+    "output_path": null
+  },
+  "notes": "Metrics will be populated during training"
+}

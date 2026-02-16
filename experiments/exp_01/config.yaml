@@ -1,0 +1,55 @@
+# Experiment 01 Configuration
+# This is a copy of the base config with experiment-specific modifications
+
+experiment_name: exp_01
+description: "Initial LoRA fine-tuning experiment with Qwen2.5-7B-Instruct"
+
+# Model configuration
+model_name_or_path: Qwen/Qwen2.5-7B-Instruct
+trust_remote_code: true
+
+# Method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_target: all
+lora_rank: 8
+lora_alpha: 16
+lora_dropout: 0.05
+
+# Dataset
+dataset: qwen_sft_dataset
+template: qwen
+cutoff_len: 2048
+overwrite_cache: true
+preprocessing_num_workers: 16
+
+# Output
+output_dir: ../../models/qwen_lora_sft_exp01
+logging_steps: 10
+save_steps: 500
+plot_loss: true
+overwrite_output_dir: true
+
+# Training
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 4
+learning_rate: 5.0e-5
+num_train_epochs: 3.0
+lr_scheduler_type: cosine
+warmup_steps: 100
+fp16: true
+ddp_timeout: 180000000
+
+# Evaluation
+val_size: 0.1
+per_device_eval_batch_size: 4
+eval_strategy: steps
+eval_steps: 500
+
+# Experiment notes
+notes: |
+  - Initial baseline experiment
+  - LoRA rank: 8, alpha: 16
+  - Learning rate: 5e-5
+  - 3 epochs training

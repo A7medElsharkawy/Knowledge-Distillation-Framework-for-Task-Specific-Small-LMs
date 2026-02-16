@@ -1,0 +1,13 @@
+{
+  "qwen_sft_dataset": {
+    "file_name": "train.json",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output"
+    },
+    "tags": {
+      "formatting": "sharegpt"
+    }
+  }
+}
