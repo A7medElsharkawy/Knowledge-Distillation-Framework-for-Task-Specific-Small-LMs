@@ -1,0 +1,1 @@
+from .prompt_template import create_details_extraction_prompt
