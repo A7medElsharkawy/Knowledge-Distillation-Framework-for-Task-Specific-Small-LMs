@@ -1,17 +1,14 @@
-from models.shcemes import NewsDetails
-from pathlib import Path
-from controllers import DataController
 import json
 
 
 
-def create_details_extraction_prompt(news_details: NewsDetails):
+def create_details_extraction_prompt(ExtractNewsDetails,text) -> list:
 
-    example_story = DataController().load_example_story()
+
     details_extraction_prompt = [
         {
             "role": "system",
-                 "content": "\n".join([
+            "content": "\n".join([
                 "You are an NLP data parser.",
                 "You will be provided by an Arabic text associated with a Pydantic scheme.",
                 "Generate the output in the same story language.",
@@ -24,11 +21,11 @@ def create_details_extraction_prompt(news_details: NewsDetails):
             "role": "user",
             "content": "\n".join([
                 "## story",
-                example_story,
+                text.strip(),
                 "",
 
                 "## Pydantic Details:",
-                json.dumps(news_details.model_json_schema(), ensure_ascii=False),
+                json.dumps(ExtractNewsDetails.model_json_schema(), ensure_ascii=False),
                 "",
                 "## Story Details:",
                 '```json'
@@ -36,3 +33,38 @@ def create_details_extraction_prompt(news_details: NewsDetails):
         }
     ]
     return details_extraction_prompt
+
+
+def translation_messagges_prompt(TranslationStory,text,target_lang)-> str:
+    
+    translation_message = [
+        {
+            "role":"system",
+            "content":'\n'.join([
+                    "You are a professional translator.",
+                    "You will be provided by an Arabic text.",
+                    "You have to translate the text into the `Targeted Language`.",
+                    "Follow the provided Scheme to generate a JSON",
+                    "Do not generate any introduction or conclusion."])
+        },
+        {
+            "role":"user",
+            "content":'\n'.join([
+                "## story",
+                text.strip(),
+                "",
+                "## Pydantic Details:",
+                json.dumps(TranslationStory.model_json_schema(), ensure_ascii=False),
+                "",
+                "## Targeted Langauge:",
+                target_lang,
+                "",
+                "## Translated Story:",
+                "```json"
+
+            ])
+
+        }
+    ]
+    return translation_message
+
