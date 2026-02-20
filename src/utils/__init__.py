@@ -1,1 +1,2 @@
 from .prompt_template import create_details_extraction_prompt
+from .prompt_template import translation_messagges_prompt
