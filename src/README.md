@@ -7,6 +7,7 @@ Distillation pipeline for news-structured language modeling: a **teacher model**
 ## 🎯 Project Goal
 
 Extract structured information from Arabic news articles using a Pydantic schema, generating JSON outputs with:
+
 - Story title, keywords, summary
 - Story category (politics, sports, art, technology, economy, health, entertainment, science)
 - Named entities (persons, locations, organizations, events, etc.)
@@ -14,6 +15,7 @@ Extract structured information from Arabic news articles using a Pydantic schema
 ## 📊 Current Progress
 
 ### ✅ Completed
+
 - **Controller Architecture**: Implemented BaseController, DataController, and ModelController for modular code organization
 - **Pydantic Schema**: Defined `NewsDetails` schema with validation for structured data extraction
 - **Model Management**: Created ModelEnum for centralized model ID management
@@ -22,11 +24,29 @@ Extract structured information from Arabic news articles using a Pydantic schema
 - **Data Loading**: DataController handles loading example stories from `data/raw/`
 
 ### 🚧 In Progress
+
 - Fine-tuning student model with LoRA adapters
 - Teacher model integration (OpenAI API)
 - Dataset preparation and processing
 
 ### 📝 Known Issues
+
+# Result Comparison
+
+## Extraction Task: Base Model(Qwen2.5-1.5B) vs GPT-4.1-mini
+
+
+| Base Model (Qwen2.5-1.5B)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | GPT-4.1-mini                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Title:** How Family Influences Financial Behavior **Keywords:** family influence, financial behavior, moneymaking, money management, inheritance **Summary:** - Financial behavior is shaped by family dynamics. - Family plays a crucial role in determining one's financial personality. - Three main aspects of financial relationships are discussed: acquisition, use, and management. **Category:** economy **Entities:** Forbes Magazine (organization), Shain Enit (person-female), Financial Therapy Association (organization) | **Title:** دور العائلة في تشكيل العلاقة بالمال وأنماط الشخصية المالية **Keywords:** العلاقة بالمال, العائلة, الشخصية المالية, مخطط الجينوم المالي, أنماط السلوك المالي **Summary:** - تلعب العائلة دورا محوريا في تشكيل علاقة الأفراد بالمال من خلال أنماط السلوك المالي المتوارثة. - تحدد 'الشخصية المالية' لكل فرد بناء على تفاعله مع المال وتأثير تربية الأسرة وتجارب الطفولة. - هناك ثلاثة أبعاد رئيسية للعلاقة بالمال: الاكتساب، الاستخدام، والإدارة، لكل منها خصائص وسلوكيات مميزة. - تؤثر التجارب الأسرية بشكل مباشر على تبني الفرد لأنماط مالية صحية أو غير صحية. - طورت رابطة العلاج المالي أداة مخطط الجينوم المالي لتحليل الأنماط المالية داخل العائلة عبر رسم شجرة عائلية وتصنيف الأفراد. **Category:** economy **Entities:** مجلة فوربس (organization), شاين إنيت (person-male), رابطة العلاج المالي (organization), مخطط الجينوم المالي (artifact) |
+
+
+## Translate Task: Base Model (Qwen2.5-1.5B) vs GPT-4.1-mini
+
+| GPT-4.1-mini  | Base Model(Qwen2.5-1.5B) |
+|-----------------------|-------------------------|
+| **Title:** The Family's Role in Shaping Our Relationship with Money<br>**Content:** Forbes magazine mentioned that the family plays a pivotal role in shaping individuals' relationship with money, as this relationship is influenced by financial behavior patterns inherited across generations.<br><br>The report, based on research by university professor Shane Ennett on financial well-being, explains that each person has a "financial personality" determined by how they interact with money, which is directly influenced by family upbringing and childhood experiences.<br><br>Three Dimensions of the Relationship with Money:<br>- **Acquisition (A):** Viewing money as a collectible, risk of obsession or rejection.<br>- **Usage (U):** Seeing money as a tool for enjoyment, may lead to overspending or extreme frugality.<br>- **Management (M):** Treating money as a responsibility, could lead to excessive planning affecting relationships.<br><br>Family experiences shape "financial personality," e.g., parental behavior patterns.<br><br>The Financial Therapy Association developed the Money Genogram to analyze family financial patterns.<br>- Draw family tree<br>- Classify members by A, U, M<br>- Determine healthy (+) or unhealthy (-) financial behaviors | **Title:** Forbes Magazine: Family Plays a Central Role in Forming Individuals' Financial Relationships<br>**Content:** According to Forbes magazine, family plays a crucial role in shaping individuals' financial relationships, as these relationships are influenced by inherited behavioral patterns across generations. |
+
 - Base model sometimes returns English responses instead of Arabic (as requested)
 - Output completeness and accuracy need improvement through fine-tuning
 
@@ -69,32 +89,37 @@ Extract structured information from Arabic news articles using a Pydantic schema
 ### Component Architecture
 
 #### 1. **Controllers** (`src/controllers/`)
+
 - **BaseController**: Base class providing common functionality (settings, base directory paths)
 - **DataController**: Handles data file operations (loading example stories, managing data directories)
 - **ModelController**: Manages model and tokenizer loading, chat template application, and model inference
 
 #### 2. **Models** (`src/models/`)
+
 - **schemes/instruction.py**: Pydantic schema (`NewsDetails`, `Entity`) for structured data validation
 - **enums/ModelEnum.py**: Enum for model ID management (BASE_MODEL_QWEN, etc.)
 
 #### 3. **Utils** (`src/utils/`)
+
 - **prompt_template.py**: Generates extraction prompts with system/user messages for teacher/student/base models
 
 #### 4. **Evaluation** (`src/evaluation/`)
+
 - **eval_base_local.py**: Evaluates base model performance on example stories
 
 #### 5. **Helper** (`src/helper/`)
+
 - **config.py**: Pydantic settings for environment variables (API keys, tokens)
 
 ### Data Flow
 
 1. **Input**: Arabic news article (text file in `data/raw/`)
 2. **Prompt Generation**: `create_details_extraction_prompt()` builds messages with:
-   - System message: Instructions for NLP data parsing
-   - User message: Story text + Pydantic schema JSON
-3. **Model Processing**: 
-   - Base/Student model processes prompt
-   - Generates structured JSON response
+  - System message: Instructions for NLP data parsing
+  - User message: Story text + Pydantic schema JSON
+3. **Model Processing**:
+  - Base/Student model processes prompt
+  - Generates structured JSON response
 4. **Validation**: Response validated against `NewsDetails` Pydantic schema
 5. **Output**: Structured JSON with story details
 
@@ -217,6 +242,7 @@ PYTHONPATH=. python test.py
 ```
 
 This will:
+
 1. Load the base model (Qwen2.5-1.5B-Instruct)
 2. Load example story from `data/raw/example.txt`
 3. Generate extraction prompt
@@ -336,6 +362,7 @@ The project foundation (controllers, schemas, prompt templates, base evaluation)
 ## 📚 Dependencies
 
 Key packages:
+
 - `transformers`: Model loading and inference
 - `pydantic-settings`: Configuration management
 - `openai`: Teacher model API
