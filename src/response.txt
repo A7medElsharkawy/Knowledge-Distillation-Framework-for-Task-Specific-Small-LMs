@@ -1,0 +1,30 @@
+{
+    "story_title": "How Family Influences Financial Behavior",
+    "story_keywords": [
+        "family influence",
+        "financial behavior",
+        "moneymaking",
+        "money management",
+        "inheritance"
+    ],
+    "story_summary": [
+        "Financial behavior is shaped by family dynamics.",
+        "Family plays a crucial role in determining one's financial personality.",
+        "Three main aspects of financial relationships are discussed: acquisition, use, and management."
+    ],
+    "story_category": "economy",
+    "story_entities": [
+        {
+            "entity_value": "Forbes Magazine",
+            "entity_type": "organization"
+        },
+        {
+            "entity_value": "Shain Enit",
+            "entity_type": "person-female"
+        },
+        {
+            "entity_value": "Financial Therapy Association",
+            "entity_type": "organization"
+        }
+    ]
+}
