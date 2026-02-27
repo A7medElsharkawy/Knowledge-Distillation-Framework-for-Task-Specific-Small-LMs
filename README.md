@@ -167,11 +167,7 @@ lora-finetuning/
 │   ├── inference/               # Inference scripts
 │   │   └── inference.py         # Model inference utilities
 │   │
-│   ├── teacher/                 # Teacher model (OpenAI)
-│   │   └── (to be implemented)
 │   │
-│   ├── student/                 # Student model fine-tuning
-│   │   └── (to be implemented)
 │   │
 │   └── test.py                  # Test script for evaluation
 │
