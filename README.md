@@ -52,77 +52,6 @@ Extract structured information from Arabic news articles using a Pydantic schema
 
 ## 🏗️ Architecture
 
-### System Overview
-
-```
-┌─────────────────┐
-│  Arabic News    │
-│  Article (Raw)  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────────────────┐
-│     Teacher Model (OpenAI GPT-4)    │
-│  Generates structured JSON labels    │
-└────────┬────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────┐
-│   Synthetic Training Data (JSON)     │
-│   Validated with NewsDetails schema  │
-└────────┬────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────┐
-│   Student Model (Qwen + LoRA)       │
-│   Fine-tuned on synthetic data       │
-└────────┬────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────┐
-│   Structured JSON Output             │
-│   (Title, Keywords, Summary,        │
-│    Category, Entities)               │
-└─────────────────────────────────────┘
-```
-
-### Component Architecture
-
-#### 1. **Controllers** (`src/controllers/`)
-
-- **BaseController**: Base class providing common functionality (settings, base directory paths)
-- **DataController**: Handles data file operations (loading example stories, managing data directories)
-- **ModelController**: Manages model and tokenizer loading, chat template application, and model inference
-
-#### 2. **Models** (`src/models/`)
-
-- **schemes/instruction.py**: Pydantic schema (`NewsDetails`, `Entity`) for structured data validation
-- **enums/ModelEnum.py**: Enum for model ID management (BASE_MODEL_QWEN, etc.)
-
-#### 3. **Utils** (`src/utils/`)
-
-- **prompt_template.py**: Generates extraction prompts with system/user messages for teacher/student/base models
-
-#### 4. **Evaluation** (`src/evaluation/`)
-
-- **eval_base_local.py**: Evaluates base model performance on example stories
-
-#### 5. **Helper** (`src/helper/`)
-
-- **config.py**: Pydantic settings for environment variables (API keys, tokens)
-
-### Data Flow
-
-1. **Input**: Arabic news article (text file in `data/raw/`)
-2. **Prompt Generation**: `create_details_extraction_prompt()` builds messages with:
-  - System message: Instructions for NLP data parsing
-  - User message: Story text + Pydantic schema JSON
-3. **Model Processing**:
-  - Base/Student model processes prompt
-  - Generates structured JSON response
-4. **Validation**: Response validated against `NewsDetails` Pydantic schema
-5. **Output**: Structured JSON with story details
-
 ## 📁 Project Structure
 
 ```
@@ -195,7 +124,7 @@ cd "/Users/shark/Desktop/lora finetuning"
 
 ```bash
 # Using conda (recommended)
-conda create -n news-slm python=3.10
+conda create -n news-slm python=3.12
 conda activate news-slm
 
 # Or using venv
@@ -215,7 +144,7 @@ pip install "accelerate>=0.26.0"
 
 ### Step 4: Configure Environment Variables
 
-Create/update `.env` file in `src/` directory:
+Create/update `example.env` file in `src/` directory:
 
 ```bash
 # Required
@@ -224,6 +153,10 @@ WANDB_API_KEY=your_wandb_key_here
 
 # Optional (for teacher model)
 OPENAI_API_KEY=your_openai_key_here
+```
+after that chnage the name of env file
+```bash
+mv example.env env
 ```
 
 **Note**: Remove any spaces after `=` in the `.env` file.
@@ -251,18 +184,21 @@ This will:
 
 ```bash
 cd src
-PYTHONPATH=. python test.py
+
+python -m src.run test-base-model --task extraction --runner local
+
+python -m src.run test-base-model --task translation --runner local
 ```
 
-Or run the evaluation function directly:
+### Evaluate Teacher Model(OpenAI)
 
-```python
-from evaluation import eval_base_model
+```bash
+cd src
 
-response = eval_base_model()
-print(response)
+python -m src.run test-base-model --task extraction --runner openai
+
+python -m src.run test-base-model --task translation --runner openai
 ```
-
 ### Load Example Story
 
 ```python
@@ -273,33 +209,7 @@ story = dc.load_example_story()
 print(story)
 ```
 
-### Generate Extraction Prompt
 
-```python
-from utils.prompt_template import create_details_extraction_prompt
-from models.shcemes import NewsDetails
-
-messages = create_details_extraction_prompt(NewsDetails)
-print(messages)
-```
-
-### Load Model and Generate Response
-
-```python
-from controllers import ModelController
-from models.enums import ModelEnum
-
-mc = ModelController()
-model, tokenizer = mc.load_model_and_tokenizer(ModelEnum.BASE_MODEL_QWEN.value)
-
-# Apply chat template
-messages = [{"role": "user", "content": "Your Arabic story here..."}]
-prompt = mc.apply_chat_templete(messages, tokenizer)
-
-# Generate response
-response = mc.model_output(prompt, tokenizer, model)
-print(response)
-```
 
 ## 🔧 Configuration
 
@@ -340,8 +250,6 @@ PYTHONPATH=. python your_script.py
 ### Environment Variables
 
 - Check `.env` file exists in `src/` directory
-- Ensure no spaces after `=` in `.env` file
-- Verify all required keys are present
 
 ## 📝 Next Steps (Remaining Work)
 
