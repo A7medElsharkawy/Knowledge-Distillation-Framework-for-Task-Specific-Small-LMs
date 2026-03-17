@@ -8,6 +8,7 @@ class BaseController:
         self.data_dir = os.path.join(self.base_dir, 'data')
         self.raw_data_dir = os.path.join(self.data_dir, 'raw')
         self.processed_data_dir = os.path.join(self.data_dir, 'processed')
+        self.adapter_model = os.path.join(self.base_dir,'training','outputmodel')
 
 
 
