@@ -4,6 +4,7 @@ CLI entry point for data generation, formatting, splitting, and base-model testi
 
 Run from project root:
   python -m src.run test-base-model --task extraction --runner openai
+  python -m src.run test-base-adapter-model --task extraction --runner local
   python -m src.run generate-data --task extraction --runner openai --limit 100
   python -m src.run format-data
   python -m src.run split-data
@@ -23,6 +24,7 @@ from controllers import DataController
 from data import format_data_for_finetuning, prepare_rawdata, split_data
 from evaluation import LocalRunner, OpenAIRunner, run_task
 from evaluation.eval_base_local import eval_base_model
+from evaluation.eval_base_model_with_adabter import eval_base_model_with_adapter
 from models.enums import ModelEnum
 from models.shcemes import ExtractNewsDetails, TranslationStory
 from utils.prompt_template import (
@@ -101,6 +103,43 @@ def cmd_test_base_model(args):
                 f.write(response)
             print(f"Saved to {args.output}")
 
+def cmd_test_adapter_model(args):
+    """Run base model with lora adabter on one or a few stories and print output."""
+    dc = DataController()
+    if args.limit and args.limit > 1:
+        raw_data = dc.load_raw_data()[: args.limit]
+        stories = [{"content": r.get("content", r.get("story", ""))} for r in raw_data]
+    else:
+        story_text = dc.load_example_story()
+        stories = [{"content": story_text}]
+
+    build_messages_fn, schema_cls, _ = _get_task_config(args.task)
+    runner = _get_runner(args.runner, args.model)
+    target_lang = ModelEnum.TARGET_LANG.value if args.task == "translation" else None
+
+    for i, story in enumerate(stories):
+        text = story["content"].strip()
+        if not text:
+            continue
+        if args.limit and args.limit > 1:
+            print(f"--- Example {i + 1} ---")
+        kwargs = {"text": text}
+        if target_lang is not None:
+            kwargs["target_lang"] = target_lang
+        messages = build_messages_fn(schema_cls, **kwargs)
+        if args.runner == "local":
+            response = eval_base_model_with_adapter(
+                args.model or ModelEnum.BASE_MODEL_QWEN.value, messages
+            )
+        else:
+            return None
+ 
+        print(response)
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(response)
+            print(f"Saved to {args.output}")
+   
 
 def cmd_generate_data(args):
     """Generate SFT data using teacher (OpenAI or local) and save to JSONL."""
@@ -208,6 +247,15 @@ def main():
     p_test.add_argument("--limit", type=int, default=None, help="Number of stories (default: 1 from example)")
     p_test.add_argument("--output", type=str, default=None, help="Save response to file")
 
+
+    # test-base-adapter-model
+    p_test = subparsers.add_parser("test-base-adapter-model", help="Run base/teacher model on one or few stories")
+    p_test.add_argument("--task", choices=["extraction", "translation"], default="extraction")
+    p_test.add_argument("--runner", choices=["local"], default="openai")
+    p_test.add_argument("--model", type=str, default=None, help="Model name (default from ModelEnum)")
+    p_test.add_argument("--limit", type=int, default=None, help="Number of stories (default: 1 from example)")
+    p_test.add_argument("--output", type=str, default=None, help="Save response to file")
+
     # generate-data
     p_gen = subparsers.add_parser("generate-data", help="Generate SFT data with teacher, write JSONL")
     p_gen.add_argument("--task", choices=["extraction", "translation"], default="extraction")
@@ -238,6 +286,8 @@ def main():
 
     if args.command == "test-base-model":
         cmd_test_base_model(args)
+    if args.command == "test-base-adapter-model":
+        cmd_test_adapter_model(args)
     elif args.command == "generate-data":
         cmd_generate_data(args)
     elif args.command == "format-data":
